@@ -98,6 +98,16 @@ This feels more like an "integration test" than a unit test at the moment. Also,
 
 https://github.com/ziglang/zig/issues/2041
 
+After reading this I realized I had already used the new function discussed to configure libtcod for the regular exe build. I went back to my `build.zig` file and added essentially same two lines (`linkLibC()` and `linkSystemLibrary("libtcod")`) to the `exe_tests` part.
+
+Reran the tests this time using `zig build test`, which doesn't require me to specify a certain zig file to test...
+
+```
+All 1 tests passed.
+```
+
+Hooray! I like the latter approach here of using the `build.zig` configuration with `zig build test`.
+
 ## Notes
 
 Just opened this up today after working on it last night and ran `zig build run` but got an error that `cimport.zig` couldn't be found?
