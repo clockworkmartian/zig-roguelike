@@ -2,7 +2,7 @@
 
 Each folder in this repository contains the full code to a part of the roguelike tutorial translated for Zig.
 
-_Disclaimer: This is my first Zig project so please do not consider anything here as idiomatic or a demonstration of how Zig programs should be written. This is simply a fun project to exlore and try Zig out and see how it feels. Consider it an anecdata point :)_
+_Disclaimer: This is my first Zig project so please do not consider anything here as idiomatic or a demonstration of how Zig programs should be written. This is simply a fun project to explore, try Zig out, and see how it feels. Consider it an anecdata point._
 
 To create this project the following commands were executed:
 
