@@ -10,6 +10,6 @@ pub fn main() anyerror!void {
     std.log.info("tcod red: {s}", .{c.TCOD_red});
 }
 
-test "basic test" {
-    try std.testing.expectEqual(10, 3 + 7);
+test "tcod red has lots of red in it" {
+    try std.testing.expectEqual(c.TCOD_red.r, 255);
 }
