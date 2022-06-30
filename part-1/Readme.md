@@ -1,8 +1,6 @@
 # Part 1: Drawing the '@' symbol and moving around
 
-## Opening a window
-
-
+TODO
 
 ## Links
 
