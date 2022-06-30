@@ -1,4 +1,4 @@
-# Part 0
+# Part 0: Setting Up
 
 ## Install Zig
 
@@ -29,7 +29,7 @@ libtcod1 - graphics and utility library for roguelike developers
 
 For me this installed libtcod (and headers) for version 1.18.1. About a year old, not too bad. I will go with that for now.
 
-I'm going to be using the libtcod C API to keep things as basic as possible. I've read that Zig can use C++ APIs as well so that might be worth exploring in the future. To figure out how to use the C API I'm going to be using some previous years roguelike tutorial attempts in C and the `samples_c.c` that comes with the libtcod source for guidance.
+I'm going to be using the libtcod C API and use some previous years roguelike tutorial attempts in C and the `samples_c.c` that comes with the libtcod source for guidance, among other things. I'll try to note links in each part to websites I used to gain information.
 
 ## Vcpkg configuration
 
