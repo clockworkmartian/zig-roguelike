@@ -1,5 +1,6 @@
 //! zig-roguelike, by @clockworkmartian
 const std = @import("std");
+const expect = std.testing.expect;
 
 // translate and import the libtcod C library headers
 const c = @cImport({
@@ -31,15 +32,15 @@ const ActionType = union(ActionTypeTag) {
 };
 
 pub fn main() anyerror!void {
-    _ = c.TCOD_console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, "Zig Roguelike", true, c.TCOD_RENDERER_SDL2);
+    _ = c.TCOD_console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, "Zig Roguelike", false, c.TCOD_RENDERER_SDL2);
     defer { // Make sure the quit function is called when main() exits
         c.TCOD_quit();
     }
 
-    var key = initKey(); // key variable for holding event key data
+    var key = c.TCOD_key_t{ .vk = c.TCODK_NONE, .c = 0, .text = undefined, .pressed = undefined, .lalt = undefined, .lctrl = undefined, .lmeta = undefined, .ralt = undefined, .rctrl = undefined, .rmeta = undefined, .shift = undefined };
     var playerX: i16 = SCREEN_WIDTH / 2; // initial player x position
     var playerY: i16 = SCREEN_HEIGHT / 2; // initial player y position
-    std.log.info("player x: {d}, y: {d}", .{ playerX, playerY });
+    // std.log.info("player x: {d}, y: {d}", .{ playerX, playerY });
 
     _ = c.TCOD_console_set_custom_font("../dejavu10x10_gs_tc.png", c.TCOD_FONT_TYPE_GREYSCALE | c.TCOD_FONT_LAYOUT_TCOD, 0, 0);
 
@@ -72,6 +73,12 @@ fn initKey() c.TCOD_key_t {
     return c.TCOD_key_t{ .vk = c.TCODK_NONE, .c = 0, .text = undefined, .pressed = undefined, .lalt = undefined, .lctrl = undefined, .lmeta = undefined, .ralt = undefined, .rctrl = undefined, .rmeta = undefined, .shift = undefined };
 }
 
+fn initKeyWithVk(initialVk: c_uint) c.TCOD_key_t {
+    var k = initKey();
+    k.vk = initialVk;
+    return k;
+}
+
 // This function takes a keydown event key and returns an optional action type to respond to the event
 fn evKeydown(key: c.TCOD_key_t) ?ActionType {
     return switch (key.vk) {
@@ -82,4 +89,15 @@ fn evKeydown(key: c.TCOD_key_t) ?ActionType {
         c.TCODK_RIGHT => ActionType{ .moveAction = MoveAction{ .dx = 1, .dy = 0 } },
         else => null,
     };
+}
+
+test "evKeydown up" {
+    const action = evKeydown(initKeyWithVk(c.TCODK_UP)).?;
+    try expect(action.moveAction.dx == 0);
+    try expect(action.moveAction.dy == -1);
+}
+
+test "initKeyWithVk should set given key on returned structure" {
+    const key = initKeyWithVk(c.TCODK_UP);
+    try expect(key.vk == c.TCODK_UP);
 }
