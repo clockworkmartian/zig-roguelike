@@ -25,6 +25,8 @@ Enjoy!
 
 # Parts
 
+To run each part cd into the folder and execute `zig build run`. To do this make sure you've installed the libtcod headers and the library itself, along with SDL2, on your system -- see part-0 for some details on that.
+
 [Part-0](part-0)
 
 [Part-1](part-1)
