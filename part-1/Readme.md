@@ -44,6 +44,8 @@ pub fn main() anyerror!void {
 
 Zig makes calling into C really easy. All we need to do is use the `@cImport` built-in function to include the `libtcod.h` header file in the source. The libtcod library binary itself is configured the same way we already covered in part 0.
 
+Note here that lines with `_ = ...` are explicitly ignore return results. These function calls return potential errors or data that I don't need or don't want to handle at the moment.
+
 ## Drawing the player glyph
 
 To draw something on the window we've created we need to just add a few function calls. We're going to use a custom font by specifying a png containing the collection of glyphs we want to use and then draw a single `@` symbol on the screen.
