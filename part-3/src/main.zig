@@ -37,7 +37,6 @@ pub fn main() anyerror!void {
     }
 
     var map = try models.Map.init(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT, allocator);
-    map.addSomeWalls();
     defer {
         map.deinit();
     }
