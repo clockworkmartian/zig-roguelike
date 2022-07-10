@@ -12,6 +12,7 @@ test {
     _ = @import("tcod.zig");
     _ = @import("engine.zig");
     _ = @import("models.zig");
+    _ = @import("procgen.zig");
 }
 
 pub fn main() anyerror!void {

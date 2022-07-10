@@ -1,45 +1,7 @@
-# Part 3: Generating a dungeon
+//! zig-roguelike, by @clockworkmartian
 
-## fill with wall instead of floor
-
-`models.zig`:
-
-```diff
-@@ -102,16 +102,9 @@ pub const Map = struct {
-         const size = width * height;
-         var tiles = try allocator.alloc(Tile, @intCast(usize, size));
-         var m = Map{.width=width, .height=height, .allocator=allocator, .tiles=tiles};
--        m.fill(FLOOR);
-+        m.fill(WALL);
-         return m;
-     }
--
--    pub fn addSomeWalls(self: *Map) void {
--        self.tiles[200] = WALL;
--        self.tiles[201] = WALL;
--        self.tiles[505] = WALL;
--        self.tiles[550] = WALL;
--    }
- };
-```
-
-`main.zig`:
-
-```diff
-@@ -37,7 +37,6 @@ pub fn main() anyerror!void {
-     }
- 
-     var map = try models.Map.init(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT, allocator);
--    map.addSomeWalls();
-     defer {
-         map.deinit();
-     }
-```
-
-## procgen v1
-
-```zig
 const std = @import("std");
+const models = @import("models.zig");
 const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
 const expect = std.testing.expect;
@@ -109,4 +71,7 @@ test "rectangularroom.inner" {
     try expect(std.meta.eql(inner[1], Coord{ .x = 3, .y = 3 }));
     try expect(inner.len == 2);
 }
-```
+
+test "generatedungeon" {
+
+}
