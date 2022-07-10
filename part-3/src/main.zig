@@ -17,7 +17,7 @@ test {
 }
 
 pub fn main() anyerror!void {
-    tcod.consoleInitRoot(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT, "Zig Roguelike", true);
+    tcod.consoleInitRoot(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT, "Zig Roguelike", false);
     defer {
         tcod.quit();
     }
@@ -46,7 +46,7 @@ pub fn main() anyerror!void {
 
     var eng = engine.Engine.init(&entities, &player, console, &map);
 
-    while (!tcod.consoleIsWindowClosed()) {
+    while (!tcod.consoleIsWindowClosed() and !eng.isQuit) {
         eng.render();
         eng.handleEvents();
     }

@@ -28,12 +28,11 @@ pub const RectangularRoom = struct {
         var innerList = ArrayList(Coord).init(allocator);
         defer innerList.deinit();
         var xi: i32 = self.x1 + 1;
-        var yi: i32 = self.y1 + 1;
-        while (xi < self.x2) : ({
-            xi += 1;
-            yi += 1;
-        }) {
-            try innerList.append(.{ .x = xi, .y = yi });
+        while (xi < self.x2) : (xi += 1) {
+            var yi: i32 = self.y1 + 1;
+            while (yi < self.y2) : (yi += 1) {
+                try innerList.append(.{ .x = xi, .y = yi });
+            }
         }
         return innerList.toOwnedSlice();
     }
@@ -51,19 +50,22 @@ pub const RectangularRoom = struct {
 pub fn generateDungeon(width: i32, height: i32, allocator: Allocator) !models.Map {
     var map = try models.Map.init(width, height, allocator);
 
-    var room1 = RectangularRoom.init(10, 15, 5, 5);
-    // var room2 = RectangularRoom.init(25, 15, 5, 5);
+    var room1 = RectangularRoom.init(20, 15, 10, 15);
+    var room2 = RectangularRoom.init(35, 15, 10, 15);
 
     var room1Inner = try room1.inner(allocator);
-    // var room2Inner = try room2.inner(allocator);
+    defer allocator.free(room1Inner);
+    
+    var room2Inner = try room2.inner(allocator);
+    defer allocator.free(room2Inner);
 
     for (room1Inner) |coord| {
         map.set(coord.x, coord.y, models.FLOOR);
     }
 
-    // for (room2Inner) |coord| {
-    //     map.set(coord.x, coord.y, models.FLOOR);
-    // }
+    for (room2Inner) |coord| {
+        map.set(coord.x, coord.y, models.FLOOR);
+    }
 
     return map;
 }

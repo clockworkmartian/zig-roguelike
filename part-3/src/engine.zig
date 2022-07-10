@@ -12,13 +12,14 @@ pub const Engine = struct {
     player: *models.Entity,
     console: tcod.TcodConsole,
     map: *models.Map,
+    isQuit: bool = false,
 
     pub fn handleEvents(self: *Engine) void {
         var key = initKey();
         tcod.sysCheckForEvent(&key);
         const optionalAction = evKeydown(key);
         if (optionalAction) |action| {
-            actions.perform(action, self.map, self.player);
+            actions.perform(action, self);
         }
     }
 
@@ -39,6 +40,10 @@ pub const Engine = struct {
             .console=console,
             .map=map,
         };
+    }
+    
+    pub fn quit(self: *Engine) void {
+        self.isQuit = true;
     }
 };
 

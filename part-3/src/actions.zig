@@ -2,17 +2,18 @@
 
 const std = @import("std");
 const models = @import("models.zig");
+const engine = @import("engine.zig");
 
-pub fn perform(action: models.ActionType, map: *models.Map, player: *models.Entity) void {
+pub fn perform(action: models.ActionType, eng: *engine.Engine) void {
     switch (action) {
-        models.ActionType.escapeAction => performEscapeAction(),
-        models.ActionType.moveAction => |m| performMoveAction(map, player, m),
+        models.ActionType.escapeAction => performEscapeAction(eng),
+        models.ActionType.moveAction => |m| performMoveAction(eng.map, eng.player, m),
     }
 }
 
-fn performEscapeAction() void {
+fn performEscapeAction(eng: *engine.Engine) void {
     std.log.info("EscapeAction: quitting...", .{});
-    std.process.exit(0);
+    eng.quit();
 }
 
 fn performMoveAction(map: *models.Map, player: *models.Entity, move: models.MoveAction) void {
