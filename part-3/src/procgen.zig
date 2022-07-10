@@ -48,6 +48,26 @@ pub const RectangularRoom = struct {
     }
 };
 
+pub fn generateDungeon(width: i32, height: i32, allocator: Allocator) !models.Map {
+    var map = try models.Map.init(width, height, allocator);
+
+    var room1 = RectangularRoom.init(10, 15, 5, 5);
+    // var room2 = RectangularRoom.init(25, 15, 5, 5);
+
+    var room1Inner = try room1.inner(allocator);
+    // var room2Inner = try room2.inner(allocator);
+
+    for (room1Inner) |coord| {
+        map.set(coord.x, coord.y, models.FLOOR);
+    }
+
+    // for (room2Inner) |coord| {
+    //     map.set(coord.x, coord.y, models.FLOOR);
+    // }
+
+    return map;
+}
+
 test "rectangularroom.init" {
     const rr = RectangularRoom.init(1, 2, 10, 8);
     try expect(rr.x1 == 1);
@@ -70,8 +90,4 @@ test "rectangularroom.inner" {
     try expect(std.meta.eql(inner[0], Coord{ .x = 2, .y = 2 }));
     try expect(std.meta.eql(inner[1], Coord{ .x = 3, .y = 3 }));
     try expect(inner.len == 2);
-}
-
-test "generatedungeon" {
-
 }

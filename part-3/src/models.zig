@@ -66,8 +66,12 @@ pub const Map = struct {
     allocator: Allocator,
     tiles: []Tile, // width * height
 
+    pub fn idx(self: *Map, x: i32, y: i32) usize {
+        return @intCast(usize, self.width * y + x);
+    }
+
     pub fn inBounds(self: *Map, x: i32, y: i32) bool {
-        return 0 <= x and x < self.width and 0 <= y and y < self.height;
+        return 0 <= x and x < self.width and 0 <= y and y < self.height and self.idx(x,y) < self.width * self.height;
     }
 
     pub fn fill(self: *Map, tileToFill: Tile) void {
@@ -77,25 +81,23 @@ pub const Map = struct {
         }
     }
 
+    pub fn set(self: *Map, x: i32, y: i32, tileToSet: Tile) void {
+        if (!self.inBounds(x,y)) @panic("outside of map");
+        self.tiles[self.idx(x,y)] = tileToSet;
+    }
+
     pub fn deinit(self: *Map) void {
         self.allocator.free(self.tiles);
     }
 
     pub fn get(self: *Map, x: i32, y: i32) !*Tile {
-        if (!self.inBounds(x,y)) {
-            @panic("went outside of map");
-        }
-        return &self.tiles[@intCast(usize, (self.width*x)+y)];
+        if (!self.inBounds(x,y)) @panic("outside of map");
+        return &self.tiles[self.idx(x,y)];
     }
 
     pub fn isWalkable(self: *Map, x: i32, y: i32) bool {
         if (!self.inBounds(x,y)) return false;
-        var loc = (self.width * y) + x;
-        if (loc > self.width * self.height) {
-            std.log.info("outside map bounds, x: {d}, y: {d}, loc: {d}, mapsize: {d}", .{x,y, loc,(self.width*self.height)});
-            @panic("went outside of map");
-        }
-        return self.tiles[@intCast(usize, loc)].walkable;
+        return self.tiles[self.idx(x,y)].walkable;
     }
 
     pub fn init(width: i32, height: i32, allocator: Allocator) !Map {
@@ -120,6 +122,11 @@ test "map.inBounds" {
     try expect(!m.inBounds(-1, -1));
     try expect(!m.inBounds(10, 10));
     try expect(!m.inBounds(20, 20));
+}
+
+test "map.inBounds2" {
+    var m = Map{ .width = 40, .height = 25, .allocator=undefined, .tiles = undefined };
+    try expect(m.inBounds(39, 24));
 }
 
 test "map.fill should fill all tiles with the same kind" {

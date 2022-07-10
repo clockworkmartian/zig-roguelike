@@ -5,6 +5,7 @@ const tcod = @import("tcod.zig");
 const models = @import("models.zig");
 const engine = @import("engine.zig");
 const constants = @import("constants.zig");
+const procgen = @import("procgen.zig");
 const expect = std.testing.expect;
 
 // import tests from dependency modules
@@ -37,7 +38,8 @@ pub fn main() anyerror!void {
         if (leaked) expect(false) catch @panic("FAIL");
     }
 
-    var map = try models.Map.init(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT, allocator);
+    // var map = try models.Map.init(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT, allocator);
+    var map = try procgen.generateDungeon(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT, allocator);
     defer {
         map.deinit();
     }
