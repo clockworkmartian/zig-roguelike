@@ -38,8 +38,8 @@ pub fn main() anyerror!void {
         if (leaked) expect(false) catch @panic("FAIL");
     }
 
-    // var map = try models.Map.init(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT, allocator);
-    var map = try procgen.generateDungeon(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT, allocator);
+    var map = try procgen.generateDungeon(constants.MAX_ROOMS, constants.ROOM_MIN_SIZE, constants.ROOM_MAX_SIZE, 
+        constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT, &player, allocator);
     defer {
         map.deinit();
     }

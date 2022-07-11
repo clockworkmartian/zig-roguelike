@@ -67,3 +67,11 @@ pub fn renderMap(console: TcodConsole, map: *models.Map) void {
         console.tiles[index].bg = t.dark.bg;
     }
 }
+
+pub fn lineInit(xFrom: i32, yFrom: i32, xTo: i32, yTo: i32) void {
+    c.TCOD_line_init(xFrom, yFrom, xTo, yTo);
+}
+
+pub fn lineStep(x: *i32, y: *i32) bool {
+    return c.TCOD_line_step(x,y);
+}
