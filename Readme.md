@@ -33,6 +33,8 @@ To run each part cd into the folder and execute `zig build run`. To do this make
 
 [Part-2](part-2)
 
+[Part-3](part-3)
+
 # Links
 
 The Roguelike Tutorials
