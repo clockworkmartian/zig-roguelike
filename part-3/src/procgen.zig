@@ -11,6 +11,10 @@ const expect = std.testing.expect;
 const Coord = struct {
     x: i32,
     y: i32,
+
+    pub fn eql(self: Coord, other: Coord) bool {
+        return self.x == other.x and self.y == other.y;
+    }
 };
 
 pub const RectangularRoom = struct {
@@ -40,12 +44,13 @@ pub const RectangularRoom = struct {
     }
 
     pub fn init(x: i32, y: i32, width: i32, height: i32) RectangularRoom {
-        return RectangularRoom{
+        var r = RectangularRoom{
             .x1 = x,
             .y1 = y,
             .x2 = width + x,
             .y2 = height + y,
         };
+        return r;
     }
 
     pub fn intersects(self: RectangularRoom, other: RectangularRoom) bool {
@@ -76,24 +81,20 @@ pub fn tunnelBetween(start: Coord, end: Coord, allocator: Allocator) ![]Coord {
     return innerList.toOwnedSlice();
 }
 
-test "tunnelBetween" {
-    var t = try tunnelBetween(.{.x=0,.y=0}, .{.x=5,.y=5}, std.testing.allocator);
-    defer std.testing.allocator.free(t);
-    // std.debug.print("tunnel: {s}\n", .{t});
-    try expect(t.len == 10);
-    try expect(std.meta.eql(t[4], .{.x=0,.y=5}) or std.meta.eql(t[5], .{.x=5,.y=0}));
-}
-
 pub fn line(start: Coord, end: Coord, innerList: *ArrayList(Coord)) !void {
+    if (start.eql(end)) {
+        // Only seems to happen because a corner wasn't needed
+        std.log.info("line: zero length line sequence {s} == {s}", .{start,end});
+        return;
+    }
     var x: i32 = undefined;
     var y: i32 = undefined;
     tcod.lineInit(start.x, start.y, end.x, end.y);
-    _ = tcod.lineStep(&x, &y); // todo: replace this with lineStep returning a coord instead?
+    _ = tcod.lineStep(&x, &y);
     try innerList.append(.{ .x = x, .y = y });
     while (!tcod.lineStep(&x, &y)) {
         try innerList.append(.{ .x = x, .y = y });
     }
-    // return innerList.toOwnedSlice();
 }
 
 pub fn generateDungeon(max_rooms: usize, room_min_size: i32, room_max_size: i32, width: i32, height: i32, player: *models.Entity, allocator: Allocator) !models.Map {
@@ -106,7 +107,7 @@ pub fn generateDungeon(max_rooms: usize, room_min_size: i32, room_max_size: i32,
     rnd.seed(@intCast(u64, std.time.milliTimestamp()));
 
     var i: usize = 0;
-    while (i < max_rooms) : (i += 1) {
+    while (i < max_rooms) {
         const roomWidth = rnd.random().intRangeAtMost(i32, room_min_size, room_max_size);
         const roomHeight = rnd.random().intRangeAtMost(i32, room_min_size, room_max_size);
 
@@ -116,39 +117,45 @@ pub fn generateDungeon(max_rooms: usize, room_min_size: i32, room_max_size: i32,
         var room = RectangularRoom.init(x,y,roomWidth, roomHeight);
 
         // intersections
-
-        // carve out the room insides
-        var roomInner = try room.inner(allocator);
-        defer allocator.free(roomInner);
-        for (roomInner) |coord| {
-            map.set(coord.x, coord.y, models.FLOOR);
+        var j: usize = 0;
+        var interscts: bool = false;
+        while (j < i) : (j += 1) {
+            if (room.intersects(rooms[j])) interscts = true;
         }
 
-        if (i == 0) {
-            const center = room.center();
-            player.x = center.x;
-            player.y = center.y;
-        } else {
-            // tunnels
-        }
+        if (!interscts) {
+            // carve out the room insides
+            var roomInner = try room.inner(allocator);
+            defer allocator.free(roomInner);
+            for (roomInner) |coord| {
+                map.set(coord.x, coord.y, models.FLOOR);
+            }
 
-        rooms[i] = room;
+            if (i == 0) {
+                const center = room.center();
+                player.x = center.x;
+                player.y = center.y;
+            } else {
+                var tunnelCoords: []Coord = try tunnelBetween(rooms[i-1].center(), room.center(), allocator);
+                defer allocator.free(tunnelCoords);
+                for (tunnelCoords) |c| {
+                    map.set(c.x, c.y, models.FLOOR);
+                }
+            }
+
+            rooms[i] = room;
+            i += 1;
+        }
     }
 
-    //     # Run through the other rooms and see if they intersect with this one.
-    //     if any(new_room.intersects(other_room) for other_room in rooms):
-    //         continue  # This room intersects, so go to the next attempt.
-    //     # If there are no intersections then the room is valid.
-
-    //     if len(rooms) == 0:
-    //         # The first room, where the player starts.
-    //         player.x, player.y = new_room.center
-    //     else:  # All rooms after the first.
-    //         # Dig out a tunnel between this room and the previous one.
-    //         for x, y in tunnel_between(rooms[-1].center, new_room.center):
-    //             dungeon.tiles[x, y] = tile_types.floor
-
     return map;
+}
+
+test "tunnelBetween" {
+    var t = try tunnelBetween(.{.x=0,.y=0}, .{.x=5,.y=5}, std.testing.allocator);
+    defer std.testing.allocator.free(t);
+    try expect(t.len == 10);
+    try expect(std.meta.eql(t[4], .{.x=0,.y=5}) or std.meta.eql(t[5], .{.x=5,.y=0}));
 }
 
 test "line" {
@@ -161,8 +168,8 @@ test "line" {
 }
 
 test "rectangularroom.intersects true" {
-    const r1 = RectangularRoom.init(1, 1, 5, 5);
-    const r2 = RectangularRoom.init(3,3, 5, 5);
+    const r1 = RectangularRoom.init(3, 3, 5, 5);
+    const r2 = RectangularRoom.init(1,1, 5, 5);
     try expect(r1.intersects(r2) == true);
 }
 

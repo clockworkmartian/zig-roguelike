@@ -82,7 +82,7 @@ pub const Map = struct {
     }
 
     pub fn set(self: *Map, x: i32, y: i32, tileToSet: Tile) void {
-        if (!self.inBounds(x,y)) @panic("outside of map");
+        if (!self.inBounds(x,y)) std.debug.panic("outside of map: {d},{d}\n", .{x,y});
         self.tiles[self.idx(x,y)] = tileToSet;
     }
 
