@@ -5,18 +5,29 @@ const tcod = @import("tcod.zig");
 const map = @import("map.zig");
 const color = @import("color.zig");
 const ent = @import("entity.zig");
+const Allocator = std.mem.Allocator;
 
 pub fn render(console: tcod.TcodConsole, m: *map.Map, player: *ent.Entity) void {
     tcod.consoleClear(console);
     renderMap(console, m);
-
-    var msg = std.fmt.allocPrint(m.allocator, "hp: {d}/{d}", 
-        .{player.component.fighter.hp, player.component.fighter.maxHp}) catch @panic("eom");
-    tcod.consolePrint(console, 1, 47, msg);
-    m.allocator.free(msg);
-
+    renderBar(console, player.component.fighter.hp, player.component.fighter.maxHp, 20, m.allocator);
     tcod.consoleBlit(console, m.width, m.height);
     tcod.consoleFlush();
+}
+
+fn renderBar(console: tcod.TcodConsole, curValue: i32, maxValue: i32, totWidth: i32, allocator: Allocator) void {
+    var barWidth = @floatToInt(i32, @intToFloat(f32, curValue) / @intToFloat(f32, maxValue) * @intToFloat(f32, totWidth)); // cast?
+
+    tcod.consoleDrawRectRgb(console, 0, 45, totWidth, 1, 1, color.Bar_empty, color.Bar_empty);
+
+    if (barWidth > 0) {
+        tcod.consoleDrawRectRgb(console, 0, 45, barWidth, 1, 1, color.Bar_filled, color.Bar_filled);
+    }
+
+    var msg = std.fmt.allocPrint(allocator, "hp: {d}/{d}", 
+        .{curValue, maxValue}) catch @panic("eom");
+    tcod.consolePrintFg(console, 1, 45, msg, color.White_rgb);
+    allocator.free(msg);
 }
 
 fn renderMap(console: tcod.TcodConsole, m: *map.Map) void {

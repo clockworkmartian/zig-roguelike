@@ -14,6 +14,7 @@ test {
     _ = @import("engine.zig");
     _ = @import("procgen.zig");
     _ = @import("map.zig");
+    _ = @import("color.zig");
 }
 
 pub fn main() anyerror!void {

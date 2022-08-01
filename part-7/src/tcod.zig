@@ -163,3 +163,17 @@ pub fn consolePrint(console: TcodConsole, x: i32, y: i32, fmt: []u8) void {
         xi += 1;
     }
 }
+
+/// Prints a string setting only the foreground color and leaving the bg alone
+pub fn consolePrintFg(console: TcodConsole, x: i32, y: i32, fmt: []u8, fg: TcodColorRGB) void {
+    var xi: i32 = 0;
+    for (fmt) |ch| {
+        c.TCOD_console_set_char(console, x+xi, y, ch);
+        c.TCOD_console_set_char_foreground(console, x+xi, y, fg);
+        xi += 1;
+    }
+}
+
+pub fn consoleDrawRectRgb(console: TcodConsole, x: i32, y: i32, width: i32, height: i32, ch: u8, fg: TcodColorRGB, bg: TcodColorRGB) void {
+    c.TCOD_console_draw_rect_rgb(console, x, y, width, height, ch, &fg, &bg, c.TCOD_BKGND_SET);
+}
