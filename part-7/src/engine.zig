@@ -7,8 +7,11 @@ const ent = @import("entity.zig");
 const map = @import("map.zig");
 const renderer = @import("renderer.zig");
 const ai = @import("ai.zig");
+const msglog = @import("messagelog.zig");
+const color = @import("color.zig");
+const MessageLog = msglog.MessageLog;
+const Allocator = std.mem.Allocator;
 const expect = std.testing.expect;
-
 const Entity = ent.Entity;
 const Map = map.Map;
 
@@ -16,7 +19,10 @@ pub const Engine = struct {
     player: *Entity,
     console: tcod.TcodConsole,
     map: *Map,
+    log: MessageLog,
     isQuit: bool = false,
+    allocator: Allocator,
+    counter: i32 = 0,
 
     pub fn handleEvents(self: *Engine) void {
         var key = tcod.initEmptyKey();
@@ -26,6 +32,9 @@ pub const Engine = struct {
             const optionalAction = evKeydown(key);
             if (optionalAction) |action| {
                 act.perform(action, self);
+                var msg = std.fmt.allocPrint(self.allocator, "player acted {d}", .{self.counter}) catch @panic("eom");
+                self.counter += 1;
+                self.log.addMessage(msg, color.White_rgb, false);
                 if (!self.isQuit) {
                     self.handleEnemyTurns();
                 }
@@ -51,12 +60,19 @@ pub const Engine = struct {
         }
     }
 
-    pub fn init(player: *Entity, console: tcod.TcodConsole, m: *Map) Engine {
+    pub fn init(player: *Entity, console: tcod.TcodConsole, m: *Map, allocator: Allocator) Engine {
+        var log = MessageLog.init(allocator);
         return Engine{
             .player=player,
             .console=console,
             .map=m,
+            .log=log,
+            .allocator=allocator,
         };
+    }
+
+    pub fn deinit(self: *Engine) void {
+        self.log.deinit();
     }
     
     pub fn quit(self: *Engine) void {
@@ -65,7 +81,7 @@ pub const Engine = struct {
 
     pub fn run(self: *Engine) void {
         while (!tcod.consoleIsWindowClosed() and !self.isQuit) {
-            renderer.render(self.console, self.map, self.player);
+            renderer.render(self.console, self.map, self.player, &self.log);
             self.handleEvents();
         }
     }

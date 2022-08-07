@@ -15,6 +15,7 @@ test {
     _ = @import("procgen.zig");
     _ = @import("map.zig");
     _ = @import("color.zig");
+    _ = @import("messagelog.zig");
 }
 
 pub fn main() anyerror!void {
@@ -40,7 +41,8 @@ pub fn main() anyerror!void {
     defer {
         map.deinit();
     }
-    var eng = engine.Engine.init(player, console, &map);
+    var eng = engine.Engine.init(player, console, &map, allocator);
+    defer eng.deinit();
 
     // Run the game
     eng.run();

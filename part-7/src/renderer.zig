@@ -5,14 +5,29 @@ const tcod = @import("tcod.zig");
 const map = @import("map.zig");
 const color = @import("color.zig");
 const ent = @import("entity.zig");
+const messagelog = @import("messagelog.zig");
 const Allocator = std.mem.Allocator;
+const MessageLog = messagelog.MessageLog;
 
-pub fn render(console: tcod.TcodConsole, m: *map.Map, player: *ent.Entity) void {
+pub fn render(console: tcod.TcodConsole, m: *map.Map, player: *ent.Entity, log: *MessageLog) void {
     tcod.consoleClear(console);
     renderMap(console, m);
     renderBar(console, player.component.fighter.hp, player.component.fighter.maxHp, 20, m.allocator);
+    renderMessages(console, 21, 45, 40, 4, log);
     tcod.consoleBlit(console, m.width, m.height);
     tcod.consoleFlush();
+}
+
+fn renderMessages(console: tcod.TcodConsole, x: i32, y: i32, width: i32, height: i32, log: *messagelog.MessageLog) void {
+    var y_offset: i32 = y;
+    var yi = @intCast(i64, log.messages.items.len)-1;
+    var nRendered: i32 = 0;
+    while (yi >= 0 and nRendered < height) : (yi -= 1) {
+        var msg = &log.messages.items[@intCast(usize, yi)];
+        tcod.consolePrintFgMaxLength(console, x, y_offset, msg.text, msg.fg, width);
+        nRendered += 1;
+        y_offset += 1;
+    }
 }
 
 fn renderBar(console: tcod.TcodConsole, curValue: i32, maxValue: i32, totWidth: i32, allocator: Allocator) void {
