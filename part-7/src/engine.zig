@@ -23,30 +23,38 @@ pub const Engine = struct {
     isQuit: bool = false,
     allocator: Allocator,
     counter: i32 = 0,
+    mx: i32 = -1,
+    my: i32 = -1,
 
     pub fn handleEvents(self: *Engine) void {
         var key = tcod.initEmptyKey();
-        tcod.sysCheckForEvent(&key);
+        var mouse = tcod.initEmptyMouse();
+        var event = tcod.sysCheckForEvent(&key, &mouse);
 
-        if (self.player.component.fighter.hp > 0) {
-            const optionalAction = evKeydown(key);
-            if (optionalAction) |action| {
-                act.perform(action, self);
-                var msg = std.fmt.allocPrint(self.allocator, "player acted {d}", .{self.counter}) catch @panic("eom");
-                self.counter += 1;
-                self.log.addMessage(msg, color.White_rgb, false);
-                if (!self.isQuit) {
-                    self.handleEnemyTurns();
+        if (event == tcod.TcodEventKeyPress) {
+            if (self.player.component.fighter.hp > 0) {
+                const optionalAction = evKeydown(key);
+                if (optionalAction) |action| {
+                    act.perform(action, self);
+                    self.counter += 1;
+                    if (!self.isQuit) {
+                        self.handleEnemyTurns();
+                    }
+                }
+            } else {
+                const optionalAction = evDeadKeydown(key);
+                if (optionalAction) |action| {
+                    act.perform(action, self);
+                    // no enemy turns with a dead player
                 }
             }
         } else {
-            const optionalAction = evDeadKeydown(key);
-            if (optionalAction) |action| {
-                act.perform(action, self);
-                // no enemy turns with a dead player
+            if (self.map.isInFov(mouse.cx, mouse.cy)) {
+                self.mx=mouse.cx;
+                self.my=mouse.cy;
             }
         }
-        
+
         tcod.computeFov(self.map.tcMap, self.player.x, self.player.y);
     }
 
@@ -54,7 +62,7 @@ pub const Engine = struct {
         for (self.map.entities.items) |e| {
             if (e != self.player) {
                 if (e.ai) |aiType| {
-                    ai.act(e, self.player, aiType, self.map);
+                    ai.act(self, e, self.player, aiType, self.map);
                 }
             }
         }
@@ -81,7 +89,7 @@ pub const Engine = struct {
 
     pub fn run(self: *Engine) void {
         while (!tcod.consoleIsWindowClosed() and !self.isQuit) {
-            renderer.render(self.console, self.map, self.player, &self.log);
+            renderer.render(self.console, self.map, self.player, &self.log, self.mx, self.my);
             self.handleEvents();
         }
     }

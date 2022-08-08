@@ -9,13 +9,22 @@ const messagelog = @import("messagelog.zig");
 const Allocator = std.mem.Allocator;
 const MessageLog = messagelog.MessageLog;
 
-pub fn render(console: tcod.TcodConsole, m: *map.Map, player: *ent.Entity, log: *MessageLog) void {
+pub fn render(console: tcod.TcodConsole, m: *map.Map, player: *ent.Entity, log: *MessageLog,
+        mx: i32, my: i32) void {
     tcod.consoleClear(console);
     renderMap(console, m);
     renderBar(console, player.component.fighter.hp, player.component.fighter.maxHp, 20, m.allocator);
     renderMessages(console, 21, 45, 40, 4, log);
+    renderExamine(console, m, mx, my);
     tcod.consoleBlit(console, m.width, m.height);
     tcod.consoleFlush();
+}
+
+fn renderExamine(console: tcod.TcodConsole, m: *map.Map, mx: i32, my: i32) void {
+    if (!m.isInFov(mx,my)) return;
+    var exText = m.examine(mx,my);
+    tcod.consolePrintFgMaxLength(console, 0, 46, exText, color.White_rgb, 20);
+    m.allocator.free(exText);
 }
 
 fn renderMessages(console: tcod.TcodConsole, x: i32, y: i32, width: i32, height: i32, log: *messagelog.MessageLog) void {
@@ -24,7 +33,15 @@ fn renderMessages(console: tcod.TcodConsole, x: i32, y: i32, width: i32, height:
     var nRendered: i32 = 0;
     while (yi >= 0 and nRendered < height) : (yi -= 1) {
         var msg = &log.messages.items[@intCast(usize, yi)];
-        tcod.consolePrintFgMaxLength(console, x, y_offset, msg.text, msg.fg, width);
+        if (msg.count > 1) {
+            var fullMsg = std.fmt.allocPrint(log.allocator, "{s} (x{d})",
+                .{msg.text, msg.count}) catch @panic("eom");
+            tcod.consolePrintFgMaxLength(console, x, y_offset, fullMsg, msg.fg, width);
+            log.allocator.free(fullMsg);
+        } else {
+            tcod.consolePrintFgMaxLength(console, x, y_offset, msg.text, msg.fg, width);
+        }
+        
         nRendered += 1;
         y_offset += 1;
     }
@@ -69,6 +86,11 @@ fn renderMap(console: tcod.TcodConsole, m: *map.Map) void {
             console.tiles[index].fg = color.SHROUD.fg;
             console.tiles[index].bg = color.SHROUD.bg;
         }
+
+        // TODO: Something is wrong here. If the map size is smaller than the screen size
+        // then a black bar appears where the map isn't written but then console tiles
+        // don't seem to be writable to those cells using the other tcod functions?
+        // Why would not writing default black tiles here break the other functions?
 
         x += 1;
         if (@mod(x,m.width) == 0) {

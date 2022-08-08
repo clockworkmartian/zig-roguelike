@@ -4,6 +4,7 @@ const ent = @import("entity.zig");
 const map = @import("map.zig");
 const tcod = @import("tcod.zig");
 const action = @import("actions.zig");
+const engine = @import("engine.zig");
 const math = std.math;
 const TcodPath = tcod.TcodPath;
 
@@ -15,9 +16,9 @@ pub const AIType = union(AITag) {
     hostile: AIHostileEnemy,
 };
 
-pub fn act(source: *ent.Entity, target: *ent.Entity, aiType: AIType, mp: *map.Map) void {
+pub fn act(eng: *engine.Engine, source: *ent.Entity, target: *ent.Entity, aiType: AIType, mp: *map.Map) void {
     switch (aiType) {
-        AIType.hostile => |hostile| hostile.act(source, target, mp),
+        AIType.hostile => |hostile| hostile.act(eng, source, target, mp),
     }
 }
 
@@ -42,7 +43,7 @@ fn pathFunction(xFrom: c_int, yFrom: c_int, xTo: c_int, yTo: c_int, userData: ?*
 }
 
 const AIHostileEnemy = struct {
-    pub fn act(self: AIHostileEnemy, source: *ent.Entity, 
+    pub fn act(self: AIHostileEnemy, eng: *engine.Engine, source: *ent.Entity, 
             target: *ent.Entity, mp: *map.Map) void {
         _ = self;
         var absDx = math.absInt(target.x - source.x) catch unreachable;
@@ -50,7 +51,7 @@ const AIHostileEnemy = struct {
         var distance = @maximum(absDx, absDy);
         if (mp.isInFov(source.x, source.y)) {
             if (distance <= 1) {
-                action.performMeleeAction(source, target);
+                action.performMeleeAction(eng, source, target);
             } else {
                 var ctx = PathContext{.mp=mp, .target=map.Coord{.x=target.x,.y=target.y}};
                 var pathToTarget = tcod.pathNewUsingFn(mp.width, mp.height, pathFunction, &ctx);

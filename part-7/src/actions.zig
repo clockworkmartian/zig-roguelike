@@ -4,6 +4,7 @@ const std = @import("std");
 const ent = @import("entity.zig");
 const map = @import("map.zig");
 const engine = @import("engine.zig");
+const color = @import("color.zig");
 
 const Map = map.Map;
 const Entity = ent.Entity;
@@ -32,7 +33,7 @@ pub const ActionType = union(ActionTypeTag) {
 pub fn perform(action: ActionType, eng: *engine.Engine) void {
     switch (action) {
         ActionType.escapeAction => performEscapeAction(eng),
-        ActionType.bumpAction => |b| performBumpAction(eng.map, eng.player, b),
+        ActionType.bumpAction => |b| performBumpAction(eng, b),
         ActionType.waitAction => performWaitAction(),
     }
 }
@@ -42,19 +43,19 @@ pub fn performWaitAction() void {
 }
 
 pub fn performEscapeAction(eng: *engine.Engine) void {
-    std.log.info("EscapeAction: quitting...", .{});
+    std.log.info("EscapeAction: quitting", .{});
     eng.quit();
 }
 
-pub fn performBumpAction(m: *Map, player: *Entity, bump: BumpAction) void {
-    var nx = player.x+bump.dx;
-    var ny = player.y+bump.dy;
-    if (m.getBlockingEntity(nx,ny)) |target| {
+pub fn performBumpAction(eng: *engine.Engine, bump: BumpAction) void {
+    var nx = eng.player.x+bump.dx;
+    var ny = eng.player.y+bump.dy;
+    if (eng.map.getBlockingEntity(nx,ny)) |target| {
         if (target.component == ent.ComponentType.fighter) {
-            performMeleeAction(player, target);
+            performMeleeAction(eng, eng.player, target);
         }
     } else {
-        performMoveAction(m, player, nx, ny);
+        performMoveAction(eng.map, eng.player, nx, ny);
     }
 }
 
@@ -65,19 +66,20 @@ pub fn performMoveAction(m: *Map, entity: *Entity, nx: i32, ny: i32) void {
     }
 }
 
-pub fn performMeleeAction(source: *Entity, target: *Entity) void {
+pub fn performMeleeAction(eng: *engine.Engine, source: *Entity, target: *Entity) void {
     var damage = source.component.fighter.power - target.component.fighter.defense;
+    var attackColor = if(source.isPlayer) color.Player_atk else color.Enemy_atk;
     if (damage > 0) {
-        std.debug.print("{s} attacks {s} for {d} damage.\n", .{
-            source.name, target.name, damage
-        });
+        var msg = std.fmt.allocPrint(eng.allocator, "{s} attacks {s} for {d} damage", 
+            .{source.name, target.name, damage}) catch @panic("eom");
+        eng.log.addMessage(msg, attackColor, true);
         target.component.fighter.setHp(target.component.fighter.hp-damage);
         if (target.component.fighter.hp == 0) {
-            ent.die(target);
+            ent.die(eng, target);
         }
     } else {
-        std.debug.print("{s} attacks {s} but does no damage.\n", .{
-            source.name, target.name
-        });
+        var msg = std.fmt.allocPrint(eng.allocator, "{s} attacks {s} but does no damage", 
+            .{source.name, target.name}) catch @panic("eom");
+        eng.log.addMessage(msg, attackColor, true);
     }
 }

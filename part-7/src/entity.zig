@@ -3,6 +3,7 @@ const std = @import("std");
 const tcod = @import("tcod.zig");
 const color = @import("color.zig");
 const ai = @import("ai.zig");
+const engine = @import("engine.zig");
 const Allocator = std.mem.Allocator;
 
 pub const ComponentTag = enum {
@@ -58,18 +59,22 @@ pub const ComponentFighter = struct {
     }
 };
 
-pub fn die(e: *Entity) void {
+pub fn die(eng: *engine.Engine, e: *Entity) void {
     if (e.isPlayer) {
-        std.debug.print("You died!\n", .{});
+        var msg = std.fmt.allocPrint(eng.allocator, "You died!", 
+            .{}) catch @panic("eom");
+        eng.log.addMessage(msg, color.Player_die, true);
     } else {
-        std.debug.print("{s} died!\n", .{e.name});
+        var msg = std.fmt.allocPrint(eng.allocator, "{s} died.", 
+            .{e.name}) catch @panic("eom");
+        eng.log.addMessage(msg, color.Enemy_die, true);
     }
 
     e.glyph = '%';
     e.color = color.rgb(191, 0, 0);
     e.blocksMovement = false;
     e.ai = null;
-    e.name = "{s}'s remains";
+    e.name = "remains"; // TODO: how do i manage freeing this if it's dynamic?
     e.renderOrder = RenderOrder.corpse;
 }
 

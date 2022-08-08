@@ -111,7 +111,7 @@ pub fn line(start: Coord, end: Coord, innerList: *ArrayList(Coord)) !void {
     }
 }
 
-pub fn generateDungeon(max_rooms: usize, room_min_size: i32, room_max_size: i32, room_max_monsters: i32, width: i32, height: i32, player: *Entity, allocator: Allocator) !Map {
+pub fn generateDungeon(max_rooms: usize, room_min_size: i32, room_max_size: i32, room_max_monsters: i32, width: i32, height: i32, maxHeight: i32, player: *Entity, allocator: Allocator) !Map {
     var m = try Map.init(width, height, allocator);
     try m.entities.append(player);
 
@@ -127,7 +127,7 @@ pub fn generateDungeon(max_rooms: usize, room_min_size: i32, room_max_size: i32,
         const roomHeight = rnd.random().intRangeAtMost(i32, room_min_size, room_max_size);
 
         const x = rnd.random().intRangeAtMost(i32, 0, width - roomWidth - 1);
-        const y = rnd.random().intRangeAtMost(i32, 0, height - roomHeight - 1);
+        const y = rnd.random().intRangeAtMost(i32, 0, maxHeight - roomHeight - 1);
 
         var room = RectangularRoom.init(x,y,roomWidth, roomHeight);
 

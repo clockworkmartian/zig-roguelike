@@ -15,9 +15,12 @@ pub const TcodColorRGBA = c.TCOD_ColorRGBA;
 pub const TcodColorRGB = c.TCOD_ColorRGB;
 pub const TcodKey = c.TCOD_key_t;
 pub const TcodMouse = c.TCOD_mouse_t;
+pub const TcodEvent = c.TCOD_event_t;
 pub const TcodMap = c.TCOD_map_t;
 pub const TcodPath = c.TCOD_path_t;
 pub const TcodCallback = c.TCOD_path_func_t;
+
+pub const TcodEventKeyPress = c.TCOD_EVENT_KEY_PRESS;
 
 pub const KeyEscape = c.TCODK_ESCAPE;
 pub const KeyUp = c.TCODK_UP;
@@ -37,6 +40,10 @@ pub fn initKeyWithVk(initialVk: c_uint) TcodKey {
     var k = initEmptyKey();
     k.vk = initialVk;
     return k;
+}
+
+pub fn initEmptyMouse() TcodMouse {
+    return TcodMouse{.x=undefined,.y=undefined,.dx=undefined,.dy=undefined,.cx=-1,.cy=-1,.dcx=undefined,.dcy=undefined,.lbutton=undefined,.rbutton=undefined,.mbutton=undefined,.lbutton_pressed=undefined,.rbutton_pressed=undefined,.mbutton_pressed=undefined,.wheel_up=undefined,.wheel_down=undefined};
 }
 
 pub fn initEmptyKey() TcodKey {
@@ -75,8 +82,8 @@ pub fn consoleBlit(con: TcodConsole, width: i32, height: i32) void {
     c.TCOD_console_blit(con,0,0,width,height,null,0,0,1.0,1.0);
 }
 
-pub fn sysCheckForEvent(key: *TcodKey) void {
-    _ = c.TCOD_sys_check_for_event(c.TCOD_EVENT_KEY_PRESS, key, null);
+pub fn sysCheckForEvent(key: *TcodKey, mouse: *TcodMouse) TcodEvent {
+    return c.TCOD_sys_check_for_event(c.TCOD_EVENT_ANY, key, mouse);
 }
 
 pub fn consoleFlush() void {

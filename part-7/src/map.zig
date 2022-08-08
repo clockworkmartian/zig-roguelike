@@ -102,6 +102,21 @@ pub const Map = struct {
         return null;
     }
 
+    pub fn examine(self: *Map, x: i32, y: i32) []u8 {
+        var first = true;
+        var buf = std.ArrayList(u8).init(self.allocator);
+        buf.appendSlice("") catch @panic("oom");
+        defer buf.deinit();
+        for (self.entities.items) |i| {
+            if (i.x == x and i.y == y) {
+                if (!first) buf.appendSlice(", ") catch @panic("oom")
+                else first = false;
+                buf.appendSlice(i.name) catch @panic("oom");
+            }
+        }
+        return buf.toOwnedSlice();
+    }
+
     pub fn isBlocked(self: *Map, x: i32, y: i32) bool {
         if (self.getBlockingEntity(x,y)) |_| {
             return true;
